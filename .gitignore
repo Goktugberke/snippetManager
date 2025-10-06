@@ -16,3 +16,6 @@ snippets.db
 # Sanal ortam klasörleri (eğer varsa)
 venv/
 .env/
+git rm --cached snippets_data.json snippets.db
+git commit -m "Add local data files to .gitignore"
+git push
