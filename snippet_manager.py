@@ -15,14 +15,13 @@ class SnippetManager(ctk.CTk):
         self.snippets = {}
         self.selected_snippet = None
         self.is_editing = False
+        self.original_description = None  
 
         self.create_ui()
 
-        # 🚀 Başlangıçta alanlar düzenlenebilir
         self.set_editable(True)
 
     def create_ui(self):
-        # Sol panel
         self.sidebar = ctk.CTkFrame(self, width=280, corner_radius=0)
         self.sidebar.pack(side="left", fill="y")
 
@@ -37,7 +36,6 @@ class SnippetManager(ctk.CTk):
         self.theme_button = ctk.CTkButton(self.sidebar, text="🌗 Tema Değiştir", command=self.toggle_theme)
         self.theme_button.pack(pady=(10, 20))
 
-        # Sağ panel
         self.main_frame = ctk.CTkFrame(self)
         self.main_frame.pack(side="right", expand=True, fill="both", padx=10, pady=10)
 
@@ -56,7 +54,6 @@ class SnippetManager(ctk.CTk):
         )
         self.code_text.pack(fill="both", expand=True, padx=5, pady=(0, 10))
 
-        # Butonlar
         self.button_frame = ctk.CTkFrame(self.main_frame)
         self.button_frame.pack(fill="x", pady=10)
 
@@ -75,7 +72,6 @@ class SnippetManager(ctk.CTk):
         self.copy_button = ctk.CTkButton(self.button_frame, text="📋 Kopyala", command=self.copy_code)
         self.copy_button.pack(side="left", padx=5)
 
-    # --------- Fonksiyonlar ---------
     def refresh_list(self):
         self.snippet_listbox.configure(state="normal")
         self.snippet_listbox.delete("1.0", "end")
@@ -87,6 +83,10 @@ class SnippetManager(ctk.CTk):
         self.snippet_listbox.configure(state="disabled")
 
     def on_snippet_click(self, event):
+        if self.is_editing:
+            messagebox.showwarning("Uyarı", "Önce değişiklikleri kaydedin veya 'Yeni' butonuna basın!")
+            return
+            
         index = self.snippet_listbox.index(f"@{event.x},{event.y}")
         line = self.snippet_listbox.get(f"{index} linestart", f"{index} lineend").strip()
         if line.startswith("• ") or line.startswith(">> "):
@@ -96,28 +96,47 @@ class SnippetManager(ctk.CTk):
             self.refresh_list()
 
     def show_snippet(self, desc):
+        self.desc_entry.configure(state="normal")
+        self.code_text.configure(state="normal")
+        
         self.desc_entry.delete("1.0", "end")
         self.code_text.delete("1.0", "end")
         self.desc_entry.insert("1.0", desc)
         self.code_text.insert("1.0", self.snippets.get(desc, ""))
-        self.set_editable(False)
+        
+        self.is_editing = False
+        self.original_description = None
+        self.set_editable(False)  
 
     def new_snippet(self):
         """Yeni ekleme için temiz ekran aç"""
+        self.desc_entry.configure(state="normal")
+        self.code_text.configure(state="normal")
         self.desc_entry.delete("1.0", "end")
         self.code_text.delete("1.0", "end")
+        
         self.selected_snippet = None
+        self.is_editing = False
+        self.original_description = None
         self.set_editable(True)
+        self.refresh_list()  
 
     def save_snippet(self):
         desc = self.desc_entry.get("1.0", "end").strip()
         code = self.code_text.get("1.0", "end").strip()
+        
         if not desc or not code:
             messagebox.showwarning("Uyarı", "Açıklama ve kod boş olamaz!")
             return
 
+        if self.is_editing and self.original_description and self.original_description != desc:
+            if self.original_description in self.snippets:
+                del self.snippets[self.original_description]
+
         self.snippets[desc] = code
         self.selected_snippet = desc
+        self.is_editing = False
+        self.original_description = None
         self.refresh_list()
         self.set_editable(False)
         messagebox.showinfo("Kaydedildi", "Kod bloğu başarıyla kaydedildi!")
@@ -126,6 +145,8 @@ class SnippetManager(ctk.CTk):
         if self.selected_snippet and self.selected_snippet in self.snippets:
             del self.snippets[self.selected_snippet]
             self.selected_snippet = None
+            self.is_editing = False
+            self.original_description = None
             self.refresh_list()
             self.new_snippet()
             messagebox.showinfo("Silindi", "Kod bloğu silindi!")
@@ -136,6 +157,9 @@ class SnippetManager(ctk.CTk):
         if not self.selected_snippet:
             messagebox.showwarning("Uyarı", "Düzenlemek için bir kod seçin!")
             return
+        
+        self.is_editing = True
+        self.original_description = self.selected_snippet
         self.set_editable(True)
 
     def copy_code(self):
@@ -162,3 +186,5 @@ class SnippetManager(ctk.CTk):
 if __name__ == "__main__":
     app = SnippetManager()
     app.mainloop()
+
+    
