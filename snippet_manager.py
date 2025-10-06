@@ -2,6 +2,22 @@ import customtkinter as ctk
 from tkinter import messagebox
 import json
 import os
+import sys
+
+def get_data_file_path():
+    """Kullanıcının AppData klasöründe veri dosyası yolu döndürür"""
+    if sys.platform == "win32":
+        # Windows için AppData/Local klasörü
+        app_data = os.path.join(os.environ['LOCALAPPDATA'], 'SnippetManager')
+    else:
+        # Linux/Mac için home directory
+        app_data = os.path.join(os.path.expanduser('~'), '.snippet_manager')
+    
+    # Klasör yoksa oluştur
+    if not os.path.exists(app_data):
+        os.makedirs(app_data)
+    
+    return os.path.join(app_data, 'snippets_data.json')
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -18,7 +34,7 @@ class SnippetManager(ctk.CTk):
         self.selected_snippet = None
         self.is_editing = False
         self.original_description = None  
-        self.data_file = "snippets_data.json"  
+        self.data_file = get_data_file_path()  # Değişti
 
         self.create_ui()
         self.load_data()  
