@@ -1,0 +1,18 @@
+# Build ve derleme dosyaları
+build/
+dist/
+__pycache__/
+*.spec
+*.pyc
+*.toc
+*.pkg
+*.zip
+*.bak
+
+# Uygulama veri dosyaları (kişisel snippet kayıtları)
+snippets_data.json
+snippets.db
+
+# Sanal ortam klasörleri (eğer varsa)
+venv/
+.env/

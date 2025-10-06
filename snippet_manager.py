@@ -1,5 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
+import json
+import os
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -16,8 +18,10 @@ class SnippetManager(ctk.CTk):
         self.selected_snippet = None
         self.is_editing = False
         self.original_description = None  
+        self.data_file = "snippets_data.json"  
 
         self.create_ui()
+        self.load_data()  
 
         self.set_editable(True)
 
@@ -47,12 +51,11 @@ class SnippetManager(ctk.CTk):
         self.code_text = ctk.CTkTextbox(
             self.main_frame,
             height=300,
-            font=ctk.CTkFont(family="Consolas", size=13),
-            text_color="#00FFAA",
-            fg_color="#1E1E1E",
+            font=ctk.CTkFont(family="JetBrains Mono", size=13),
             corner_radius=10
         )
         self.code_text.pack(fill="both", expand=True, padx=5, pady=(0, 10))
+        self.update_code_colors() 
 
         self.button_frame = ctk.CTkFrame(self.main_frame)
         self.button_frame.pack(fill="x", pady=10)
@@ -139,6 +142,7 @@ class SnippetManager(ctk.CTk):
         self.original_description = None
         self.refresh_list()
         self.set_editable(False)
+        self.save_data()  
         messagebox.showinfo("Kaydedildi", "Kod bloğu başarıyla kaydedildi!")
 
     def delete_snippet(self):
@@ -149,6 +153,7 @@ class SnippetManager(ctk.CTk):
             self.original_description = None
             self.refresh_list()
             self.new_snippet()
+            self.save_data()  
             messagebox.showinfo("Silindi", "Kod bloğu silindi!")
         else:
             messagebox.showwarning("Uyarı", "Silinecek kod seçilmedi!")
@@ -181,10 +186,40 @@ class SnippetManager(ctk.CTk):
         else:
             ctk.set_appearance_mode("dark")
             self.current_theme = "dark"
+        self.update_code_colors() 
+
+    def update_code_colors(self):
+        """Temaya göre kod bloğu renklerini ayarla"""
+        if self.current_theme == "dark":
+            self.code_text.configure(
+                text_color="#00FFAA",  
+                fg_color="#1E1E1E"     
+            )
+        else:
+            self.code_text.configure(
+                text_color="#0066CC",  
+                fg_color="#F5F5F5"      
+            )
+
+    def save_data(self):
+        """Verileri JSON dosyasına kaydet"""
+        try:
+            with open(self.data_file, 'w', encoding='utf-8') as f:
+                json.dump(self.snippets, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            messagebox.showerror("Hata", f"Veri kaydedilemedi: {e}")
+
+    def load_data(self):
+        """JSON dosyasından verileri yükle"""
+        if os.path.exists(self.data_file):
+            try:
+                with open(self.data_file, 'r', encoding='utf-8') as f:
+                    self.snippets = json.load(f)
+                self.refresh_list()
+            except Exception as e:
+                messagebox.showerror("Hata", f"Veri yüklenemedi: {e}")
 
 
 if __name__ == "__main__":
     app = SnippetManager()
     app.mainloop()
-
-    
